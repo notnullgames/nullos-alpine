@@ -13,6 +13,20 @@ source "${dir}/../alpibase/scripts/qcow_handling.sh"
 # mount the qcow image
 mount_qimage "${WORK_DIR}/image-${NAME}.qcow2" "${ROOTFS_DIR}"
 
+# basic net
+cat << INTERFACES > "${ROOTFS_DIR}/etc/network/interfaces"
+auto lo
+iface lo inet loopback
+
+# this allows AP mode, so you can connect and configure
+auto wlan0
+iface wlan0 inet static
+  address 10.0.0.1
+  netmask 255.255.255.0
+
+INTERFACES
+
+# setup initial "AP mode" so you can ssh in and configure
 cat << CHROOT | chroot "${ROOTFS_DIR}" sh
 apk add dropbear wireless-tools wpa_supplicant hostapd dnsmasq
 
@@ -41,24 +55,16 @@ interface=wlan0
 dhcp-range=10.0.0.2,10.0.0.5,255.255.255.0,12h
 DNSMASQ
 
-# basic net
-cat << INTERFACES > "${ROOTFS_DIR}/etc/network/interfaces"
-auto lo
-iface lo inet loopback
-
-auto wlan0
-iface wlan0 inet static
-  address 10.0.0.1
-  netmask 255.255.255.0
-INTERFACES
-
-cat << MOTD > "${ROOTFS_DIR}/etc/motd"
-Howdy, Hacker!
-
-MOTD
-
-cat "${dir}/radical_edward.ans" >> "${ROOTFS_DIR}/etc/motd"
-echo \ >> "${ROOTFS_DIR}/etc/motd"
+# friendly welcome script
+echo "" > "${ROOTFS_DIR}/etc/motd"
+cp "${dir}/radical_edward.ans" "${ROOTFS_DIR}/etc/radical_edward.ans"
+cat << HELLO > "${ROOTFS_DIR}/etc/profile.d/hello.sh"
+#!/bin/sh
+clear
+echo "Howdy Hacker!"
+cat /etc/radical_edward.ans
+HELLO
+chmod 755 "${ROOTFS_DIR}/etc/profile.d/hello.sh"
 
 cat << ISSUE > "${ROOTFS_DIR}/etc/issue"
 
