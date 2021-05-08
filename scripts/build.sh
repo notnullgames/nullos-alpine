@@ -53,9 +53,12 @@ iface wlan0 inet static
 INTERFACES
 
 cat << MOTD > "${ROOTFS_DIR}/etc/motd"
-Welcome hacker.
+Howdy, Hacker!
 
 MOTD
+
+cat "${dir}/radical_edward.ans" >> "${ROOTFS_DIR}/etc/motd"
+echo \ >> "${ROOTFS_DIR}/etc/motd"
 
 cat << ISSUE > "${ROOTFS_DIR}/etc/issue"
 

@@ -6,11 +6,12 @@ qcow: out/image-nullos.qcow2      ## Generate a qcow2 image (for qemu) in out/
 image: out/image-nullos.img       ## Generate complete SD disk image in out/
 
 emulate: out/image-nullos.qcow2   ## Run the OS in an emulator
+	cp out/image-nullos.qcow2 out/image-nullos-run.qcow2 && \
 	qemu-system-arm \
 		-M versatilepb \
 		-cpu arm1176 \
 		-m 256 \
-		-hda ./out/image-nullos.qcow2 \
+		-hda ./out/image-nullos-run.qcow2 \
 		-net user,hostfwd=tcp::5022-:22 \
 		-dtb qemu-rpi-kernel/versatile-pb-buster.dtb \
 		-kernel qemu-rpi-kernel/kernel-qemu-4.19.50-buster \
