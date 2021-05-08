@@ -1,8 +1,9 @@
 #!/bin/bash
 
 export NAME="nullos"
-export WORK_DIR=$(realpath work)
+export WORK_DIR=$(realpath out)
 
+dir=$(cd "${0%[/\\]*}" > /dev/null && pwd)
 source "${dir}/../alpibase/scripts/qcow_handling.sh"
 
 # generate an SD image for pi

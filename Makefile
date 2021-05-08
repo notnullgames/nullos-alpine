@@ -23,7 +23,7 @@ clean:                            ## Clean all built files
 
 out/image-nullos.qcow2:
 	sudo ./scripts/build.sh
-	sudo chown -R $(whoami) out
+	sudo chown -R ${USER} out
 
 out/image-nullos.img: out/image-nullos.qcow2
-	./scripts/image.sh
+	sudo ./scripts/image.sh

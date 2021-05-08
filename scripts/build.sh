@@ -11,14 +11,10 @@ dir=$(cd "${0%[/\\]*}" > /dev/null && pwd)
 source "${dir}/../alpibase/scripts/qcow_handling.sh"
 
 # mount the qcow image
-mount_qimage "${ROOTFS_DIR}"
+mount_qimage "${WORK_DIR}/image-${NAME}.qcow2" "${ROOTFS_DIR}"
 
 # do things in a chroot
 chroot "${ROOTFS_DIR}" sh
 
 # unmount the image
 umount_qimage "${ROOTFS_DIR}"
-
-# generate an SD image for pi
-make_bootable_image "${WORK_DIR}/${CURRENT_IMAGE}" "${WORK_DIR}/${NAME}.img"
-
