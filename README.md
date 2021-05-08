@@ -2,6 +2,8 @@
 
 The minimal & fast-booting OS used on nullbox.
 
+![screenshot](screenshot.png)
+
 ## usage
 
 This repo has submodules, so do this:
