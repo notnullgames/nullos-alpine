@@ -13,6 +13,14 @@ source "${dir}/../alpibase/scripts/qcow_handling.sh"
 # mount the qcow image
 mount_qimage "${WORK_DIR}/image-${NAME}.qcow2" "${ROOTFS_DIR}"
 
+cat << CHROOT | chroot "${ROOTFS_DIR}" sh
+apk add dropbear wireless-tools wpa_supplicant hostapd dnsmasq
+
+rc-update add dropbear boot
+rc-update add dnsmasq boot
+rc-update add hostapd boot
+CHROOT
+
 cat << HOSTAPD > "${ROOTFS_DIR}/etc/hostapd/hostapd.conf"
 interface=wlan0
 driver=nl80211
@@ -43,15 +51,6 @@ iface wlan0 inet static
   address 10.0.0.1
   netmask 255.255.255.0
 INTERFACES
-
-cat << CHROOT | chroot "${ROOTFS_DIR}" sh
-apk add dropbear wireless-tools wpa_supplicant hostapd dnsmasq
-
-rc-update add dropbear boot
-rc-update add dnsmasq boot
-rc-update add hostapd boot
-
-CHROOT
 
 # unmount the image
 umount_qimage "${ROOTFS_DIR}"
