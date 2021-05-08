@@ -53,8 +53,11 @@ iface wlan0 inet static
 INTERFACES
 
 cat << MOTD > "${ROOTFS_DIR}/etc/motd"
+Welcome hacker.
 
-              Welcome to nullos
+MOTD
+
+cat << ISSUE > "${ROOTFS_DIR}/etc/issue"
 
                   888 888                   
                   888 888                   
@@ -64,8 +67,9 @@ cat << MOTD > "${ROOTFS_DIR}/etc/motd"
 888  888 888  888 888 888 888  888 "Y8888b. 
 888  888 Y88b 888 888 888 Y88..88P      X88 
 888  888  "Y88888 888 888  "Y88P"   88888P' 
+\s \r \v (\m)
 
-MOTD
+ISSUE
 
 # unmount the image
 umount_qimage "${ROOTFS_DIR}"
