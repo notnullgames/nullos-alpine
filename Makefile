@@ -19,7 +19,7 @@ emulate: out/image-nullos.qcow2   ## Run the OS in an emulator
 
 .PHONY: clean
 clean:                            ## Clean all built files
-	rm -rf out
+	sudo rm -rf out
 
 out/image-nullos.qcow2:
 	sudo ./scripts/build.sh
