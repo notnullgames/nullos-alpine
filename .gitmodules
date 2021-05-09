@@ -1,6 +1,0 @@
-[submodule "alpibase"]
-	path = alpibase
-	url = https://github.com/konsumer/alpibase.git
-[submodule "qemu-rpi-kernel"]
-	path = qemu-rpi-kernel
-	url = https://github.com/dhruvvyas90/qemu-rpi-kernel.git

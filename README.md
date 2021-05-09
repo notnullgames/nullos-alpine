@@ -4,12 +4,12 @@ The minimal & fast-booting OS used on nullbox.
 
 ![screenshot](screenshot.png)
 
-## usage
+## installation
 
-This repo has submodules, so do this:
-
-```sh
-git clone --recursive https://github.com/notnullgames/nullos.git
+```
+pip3 install pyyaml requests
 ```
 
-Run `make` to see a desciption of all the make-targets.
+## usage
+
+Run `./nullos` to see available sub-commands.
