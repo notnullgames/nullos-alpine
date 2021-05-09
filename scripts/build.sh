@@ -13,6 +13,11 @@ source "${dir}/../alpibase/scripts/qcow_handling.sh"
 # mount the qcow image
 mount_qimage "${WORK_DIR}/image-${NAME}.qcow2" "${ROOTFS_DIR}"
 
+# this shouldn't be needed on recent alpine, but here's how to get proprietary firmware
+# git clone --depth 1 https://github.com/RPi-Distro/firmware-nonfree.git "${WORK_DIR}/firmware-nonfree"
+# mkdir -p "${ROOTFS_DIR}/firmware/brcm"
+# cp "${WORK_DIR}/firmware-nonfree/brcm/*" "${ROOTFS_DIR}/firmware/brcm"
+
 # basic net
 cat << INTERFACES > "${ROOTFS_DIR}/etc/network/interfaces"
 auto lo
