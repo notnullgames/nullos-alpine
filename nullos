@@ -46,7 +46,7 @@ if __name__ == "__main__":
     if path.isdir(p):
       print(f'Overlay: {overlay}')
       for f in listdir(f'overlays/{overlay}'):
-        copytree(f'overlays/{overlay}/{f}', path.join(work_dir, f'overlay/{f}'), dirs_exist_ok=True)
+        copytree(f'overlays/{overlay}/{f}', path.join(work_dir, f'overlay/{f}'), dirs_exist_ok=True, ignore_dangling_symlinks=True)
 
   # generate overlay file from merged overlays in single dir
   make_archive(path.join(work_dir, "nullos", "nullos.apkovl"), 'gztar', path.join(work_dir, "overlay"), '.')

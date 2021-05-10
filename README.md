@@ -14,9 +14,10 @@ pip3 install pyyaml requests
 
 Run `./nullos` to build out/nullos.tar.gz.
 
+
 ## installation
 
-Format a microSD to fat32 (should be able to do this on any OS) then extract nullos.tar.gz he root of the disk.
+Format a microSD to fat32 (should be able to do this on any OS) and make the partition bootable. Next, extract nullos.tar.gz he root of the disk.
 
 ### getting started
 
@@ -25,6 +26,10 @@ Once you get booted, there are manual steps you need ot complete, to have a work
 - Boot with screen & keyboard (or use ssh local overlay method, below)
 - login with `root`
 - run `setup-alpine`, it will ask you questions, and set things up.
+
+### firmware
+
+We included brcm firmware in overlays/firmware-nonfree, just to get pi wifi working, but you might need other [non-free firmware](https://github.com/wkennington/linux-firmware), whcih you can just put in there.
 
 
 ### overlays
