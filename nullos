@@ -94,7 +94,7 @@ def build_image(image="nullos.img", root_dir="root", work_dir="out", size="1G"):
     if path.isdir(p):
       print(f'Overlay: {overlay}')
       with tarfile.open(path.join(work_dir, root_dir, f'{overlay}.apkovl.tar.gz'), "w:gz") as tar:
-        tar.add(p, arcname=path.basename(p))
+        tar.add(p, arcname='.')
 
   image_unmount(path.join(work_dir, root_dir))
 
