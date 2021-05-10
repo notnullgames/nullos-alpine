@@ -42,7 +42,7 @@ if __name__ == "__main__":
     p = path.join('overlays', overlay)
     if path.isdir(p):
       print(f'Overlay: {overlay}')
-      make_archive(path.join(work_dir, "nullos", f'{overlay}.apkvol'), 'gztar', p, '.')
+      make_archive(path.join(work_dir, "nullos", f'{overlay}.apkovl'), 'gztar', p, '.')
 
   # rebuild tarball
   print(f'Building: {path.join(work_dir, "nullos")}.tar.gz')
