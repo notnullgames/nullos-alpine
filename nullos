@@ -4,7 +4,7 @@
 
 from yaml import SafeLoader, load as yaml
 from os import makedirs, path, listdir
-from shutil import make_archive, unpack_archive
+from shutil import make_archive, unpack_archive, copytree
 import requests
 import hashlib
 
@@ -27,6 +27,7 @@ def download_release(release, output=None):
 if __name__ == "__main__":
   work_dir="./out"
   makedirs(path.join(work_dir, "nullos"), exist_ok=True)
+  makedirs(path.join(work_dir, "overlay"), exist_ok=True)
   
   # get alpine
   if not path.isfile(path.join(work_dir, "alpine.tgz")):
@@ -34,15 +35,21 @@ if __name__ == "__main__":
       if r["flavor"] == "alpine-rpi":
         print(f'Downloading Alpine: {r["title"]}.')
         download_release(r, path.join(work_dir, "alpine.tgz"))
-        unpack_archive(path.join(work_dir, "alpine.tgz"), path.join(work_dir, "nullos"))
         break
+
+  # create initial root
+  unpack_archive(path.join(work_dir, "alpine.tgz"), path.join(work_dir, "nullos"))
   
-  # build overlay files
+  # build overlay dir
   for overlay in listdir('overlays'):
     p = path.join('overlays', overlay)
     if path.isdir(p):
       print(f'Overlay: {overlay}')
-      make_archive(path.join(work_dir, "nullos", f'{overlay}.apkovl'), 'gztar', p, '.')
+      for f in listdir(f'overlays/{overlay}'):
+        copytree(f'overlays/{overlay}/{f}', path.join(work_dir, f'overlay/{f}'), dirs_exist_ok=True)
+
+  # generate overlay file from merged overlays in single dir
+  make_archive(path.join(work_dir, "nullos", "nullos.apkovl"), 'gztar', path.join(work_dir, "overlay"), '.')
 
   # rebuild tarball
   print(f'Building: {path.join(work_dir, "nullos")}.tar.gz')
