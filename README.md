@@ -18,6 +18,15 @@ Run `./nullos` to build out/nullos.tar.gz.
 
 Format a microSD to fat32 (should be able to do this on any OS) then extract nullos.tar.gz he root of the disk.
 
+### getting started
+
+Once you get booted, there are manual steps you need ot complete, to have a working device.
+
+- Boot with screen & keyboard (or use ssh local overlay method, below)
+- login with `root`
+- run `setup-alpine`, it will ask you questions, and set things up.
+- TODO: `lbu` commands to finalize/commit
+
 
 ### overlays
 
@@ -30,7 +39,8 @@ A useful example is headless ssh mode, so you can configure the device:
 - downlaod [this folder](https://github.com/mesca/alpine_headless/tree/master/ovl) and rename ovl to overlays/local
 - edit overlay/local/etc/wpa_supplicant/wpa_supplicant.conf to have your wifi creds
 - run `./nullos`
-- for your SD card (single FAT32 partition)
+- format your SD card (single FAT32 partition)
 - extract out/nullos.tar.gz to your SD
 - boot it on pi, and login to your device over ssh
-- run `setup-alpine` to do basic config
+- do setup things, as above
+
