@@ -4,6 +4,7 @@
 
 from yaml import SafeLoader, load as yaml
 from os import makedirs, path, stat, listdir
+from shutil import copyfile
 import requests
 import hashlib
 import tarfile
@@ -95,6 +96,7 @@ def build_image(image="nullos.img", root_dir="root", work_dir="out", size="1G"):
       print(f'Overlay: {overlay}')
       with tarfile.open(path.join(work_dir, root_dir, f'{overlay}.apkovl.tar.gz'), "w:gz") as tar:
         tar.add(p, arcname='.')
+      copyfile(path.join(work_dir, root_dir, f'{overlay}.apkovl.tar.gz'), path.join(work_dir, f'{overlay}.apkovl.tar.gz'))
 
   image_unmount(path.join(work_dir, root_dir))
 
