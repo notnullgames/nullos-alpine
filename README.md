@@ -29,7 +29,7 @@ Once you get booted, there are manual steps you need ot complete, to have a work
 
 ### firmware
 
-We included brcm firmware in overlays/firmware-nonfree, just to get pi wifi working, but you might need other [non-free firmware](https://github.com/wkennington/linux-firmware), whcih you can just put in there.
+We included [brcm firmware](http://static.sevangelatos.com/raspberry_pi_firmware.tar.bz2) in overlays/firmware-nonfree, just to get pi wifi working, but you might need other [non-free firmware](https://github.com/wkennington/linux-firmware), which you can just put in there.
 
 
 ### overlays
