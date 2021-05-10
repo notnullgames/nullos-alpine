@@ -25,7 +25,6 @@ Once you get booted, there are manual steps you need ot complete, to have a work
 - Boot with screen & keyboard (or use ssh local overlay method, below)
 - login with `root`
 - run `setup-alpine`, it will ask you questions, and set things up.
-- TODO: `lbu` commands to finalize/commit
 
 
 ### overlays
@@ -43,4 +42,4 @@ A useful example is headless ssh mode, so you can configure the device:
 - extract out/nullos.tar.gz to your SD
 - boot it on pi, and login to your device over ssh
 - do setup things, as above
-
+- TODO: `lbu` commands to finalize/commit
