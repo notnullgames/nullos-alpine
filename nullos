@@ -3,7 +3,7 @@
 # pip3 install pyyaml requests
 
 from yaml import SafeLoader, load as yaml
-from os import makedirs, path, stat
+from os import makedirs, path, stat, listdir
 import requests
 import hashlib
 import tarfile
@@ -88,6 +88,18 @@ def build_image(image="nullos.img", root_dir="root", work_dir="out", size="1G"):
   print("Extracting files")
   with tarfile.open(path.join(work_dir, "alpine.tgz"), "r:gz") as tar:
     tar.extractall(path.join(work_dir, root_dir))
+  
+  for overlay in listdir('overlays'):
+    p = path.join('overlays', overlay)
+    if path.isdir(p):
+      print(f'Overlay: {overlay}')
+      with tarfile.open(path.join(work_dir, root_dir, f'{overlay}.apkovl.tar.gz'), "w:gz") as tar:
+        tar.add(p, arcname=path.basename(p))
+
+  image_unmount(path.join(work_dir, root_dir))
+
+
+
 
 @subcommand([
   argument("IMAGE", help="Disk image to mount", nargs='?', const=1, default="out/nullos.img", type=str),
