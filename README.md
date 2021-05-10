@@ -1,6 +1,6 @@
 # nullos
 
-The minimal & fast-booting OS used on nullbox.
+The minimal & fast-booting Alpine-based OS used on nullbox.
 
 ![screenshot](screenshot.png)
 
