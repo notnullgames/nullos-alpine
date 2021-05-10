@@ -12,12 +12,16 @@ pip3 install pyyaml requests
 
 ## usage
 
-Run `./nullos --help` to see available sub-commands.
+Run `./nullos` to build out/nullos.tar.gz.
+
+## installation
+
+Format a microSD to fat32 (should be able to do this on any OS) then extract nullos.tar.gz he root of the disk.
 
 
 ### overlays
 
-The config/install of mopst things is done with alpine overlays, which are just `apkovl.tar.gz` files.
+The config/install of mopst things is done with alpine overlays, which are just tarballs named with `apkovl.tar.gz`.
 
 All the folders in overlays will be turned into thse kind of files, and there is a special one [overlays/local](overlays/local) which is just for your local config (and should not be checked into git.)
 

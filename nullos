@@ -3,29 +3,10 @@
 # pip3 install pyyaml requests
 
 from yaml import SafeLoader, load as yaml
-from os import makedirs, path, stat, listdir
-from shutil import copyfile
+from os import makedirs, path, listdir
+from shutil import make_archive, unpack_archive
 import requests
 import hashlib
-import tarfile
-from subprocess import check_output as call
-import argparse
-
-parser = argparse.ArgumentParser(description='Work with nullOS disk')
-subparsers = parser.add_subparsers(dest="subcommand")
-
-# decorator for setting up options
-def subcommand(args=[], parent=subparsers):
-  def decorator(func):
-    parser = parent.add_parser(func.__name__, description=func.__doc__)
-    for arg in args:
-      parser.add_argument(*arg[0], **arg[1])
-    parser.set_defaults(func=func)
-  return decorator
-
-# allow config of decorator
-def argument(*name_or_flags, **kwargs):
-  return ([*name_or_flags], kwargs)
 
 # get information about current releases
 def get_releases(arch="armhf"):
@@ -43,91 +24,26 @@ def download_release(release, output=None):
   if h != release["sha256"]:
     raise Exception("Hash did not match.")
 
-# make an empty file in the best available way
-def make_empty_file(name, size):
-  print(f'Allocating {size} disk image: {name}')
-  try:
-    call(["mkfile", size, name])
-  except FileNotFoundError:
-    try:
-      call(['fallocate', '-l', size, name])
-    except FileNotFoundError:
-      call(["dd", "if=/dev/zero", f"of={name}", "bs=1", "count=0", f"seek={size}"])
-
-# cross-platform mount disk image
-def image_mount(image, dir_name="out/root"):
-  print(f'Mount image: {image} -> {dir_name}')
-  try:
-    dev=call(["hdiutil", "attach", "-imagekey", "diskimage-class=CRawDiskImage", "-nomount", image]).strip()
-    call(["mount", "-t", "msdos", dev, dir_name])
-  except(FileNotFoundError):
-    call(["mount", "-t", "vfat", "-o", "loop", image, dir_name])
-
-# unmount mounted ddir_nameectory
-def image_unmount(dir_name="out/root"):
-  print(f'Unmount image: {dir_name}')
-  call(["umount", dir_name])
-
-# main function to create an image
-def build_image(image="nullos.img", root_dir="root", work_dir="out", size="1G"):
-  makedirs(path.join(work_dir, root_dir), exist_ok=True)
-
-  if not path.isfile("out/alpine.tgz"):
+if __name__ == "__main__":
+  work_dir="./out"
+  makedirs(path.join(work_dir, "nullos"), exist_ok=True)
+  
+  # get alpine
+  if not path.isfile(path.join(work_dir, "alpine.tgz")):
     for r in get_releases():
       if r["flavor"] == "alpine-rpi":
-        print(f'Downloading {r["title"]}.')
-        download_release(r, "out/alpine.tgz")
+        print(f'Downloading Alpine: {r["title"]}.')
+        download_release(r, path.join(work_dir, "alpine.tgz"))
+        unpack_archive(path.join(work_dir, "alpine.tgz"), path.join(work_dir, "nullos"))
         break
-
-  make_empty_file(path.join(work_dir, image), "1G")
-
-  print("Create VFAT filesystem")
-  call(["mkdosfs", "-F32", path.join(work_dir, image)])
-
-  image_mount(path.join(work_dir, image), path.join(work_dir, root_dir))
-
-  print("Extracting files")
-  with tarfile.open(path.join(work_dir, "alpine.tgz"), "r:gz") as tar:
-    tar.extractall(path.join(work_dir, root_dir))
   
+  # build overlay files
   for overlay in listdir('overlays'):
     p = path.join('overlays', overlay)
     if path.isdir(p):
       print(f'Overlay: {overlay}')
-      with tarfile.open(path.join(work_dir, root_dir, f'{overlay}.apkvol.tar.gz'), "w:gz") as tar:
-        tar.add(p, arcname='.')
-      copyfile(path.join(work_dir, root_dir, f'{overlay}.apkvol.tar.gz'), path.join(work_dir, f'{overlay}.apkvol.tar.gz'))
+      make_archive(path.join(work_dir, "nullos", f'{overlay}.apkvol'), 'gztar', p, '.')
 
-  image_unmount(path.join(work_dir, root_dir))
-
-
-
-
-@subcommand([
-  argument("IMAGE", help="Disk image to mount", nargs='?', const=1, default="out/nullos.img", type=str),
-  argument("FOLDER", help="Folder to mount to", nargs='?', const=1, default="out/root", type=str)
-])
-def mount(args):
-  image_mount(args.IMAGE, args.FOLDER)
-
-@subcommand([
-  argument("FOLDER", help="Mounted folder", nargs='?', const=1, default="out/root", type=str)
-])
-def unmount(args):
-  image_unmount(args.FOLDER)
-
-@subcommand([
-  argument("WORK_DIR", help="The place where files are stored", nargs='?', const=1, default="out", type=str),
-  argument("ROOT_DIR", help="The dir (inside WORK_DIR) to use for filesystem", nargs='?', const=1, default="root", type=str),
-  argument("IMAGE", help="The image-filename (inside WORK_DIR)", nargs='?', const=1, default="nullos.img", type=str),
-  argument("--size", help="The filesize of the image", nargs='?', const=1, default="1G", type=str)
-])
-def build(args):
-  build_image(image=args.IMAGE, root_dir=args.ROOT_DIR, work_dir=args.WORK_DIR, size=args.size)
-
-if __name__ == "__main__":
-  args = parser.parse_args()
-  if args.subcommand is None:
-    parser.print_help()
-  else:
-    args.func(args)
+  # rebuild tarball
+  print(f'Building: {path.join(work_dir, "nullos")}.tar.gz')
+  make_archive(path.join(work_dir, "nullos"), 'gztar', path.join(work_dir, "nullos"), '.')
