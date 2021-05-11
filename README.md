@@ -34,13 +34,13 @@ We included [brcm firmware](http://static.sevangelatos.com/raspberry_pi_firmware
 
 ### overlays
 
-The config/install of mopst things is done with alpine overlays, which are just tarballs named with `apkovl.tar.gz`.
+The config/install of most things is done with alpine overlays, which are just tarballs named with `apkovl.tar.gz`.
 
 All the folders in overlays will be turned into these kind of files, and there is a special one [overlays/local](overlays/local) which is just for your local config (and should not be checked into git.)
 
 A useful example is headless ssh mode, so you can configure the device:
 
-- downlaod [this folder](https://github.com/mesca/alpine_headless/tree/master/ovl) and rename ovl to overlays/local
+- download [this folder](https://github.com/mesca/alpine_headless/tree/master/ovl) and rename ovl to overlays/local
 - edit overlay/local/etc/wpa_supplicant/wpa_supplicant.conf to have your wifi creds
 - run `./nullos`
 - format your SD card (single FAT32 partition)
