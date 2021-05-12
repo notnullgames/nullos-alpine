@@ -3,13 +3,25 @@
 PYTHON=$(which python3)
 SFDISK=$(which sfdisk)
 
+function red {
+  printf "\033[0;31m$@\033[0m\n"
+}
+
+function green {
+  printf "\033[0;32m$@\033[0m\n"
+}
+
+function yellow {
+  printf "\033[0;33m$@\033[0m\n"
+}
+
 if [ -z "${PYTHON}" ];then
-  echo "python3 not found in your path."
+  red "python3 not found in your path."
   exit 1
 fi
 
 if [ -z "${SFDISK}" ];then
-  echo "sfdisk not found in your path."
+  red "sfdisk not found in your path."
   exit 1
 fi
 
@@ -58,18 +70,6 @@ case $key in
     ;;
 esac
 done
-
-function red {
-  printf "\033[0;31m$@\033[0m\n"
-}
-
-function green {
-  printf "\033[0;32m$@\033[0m\n"
-}
-
-function yellow {
-  printf "\033[0;33m$@\033[0m\n"
-}
 
 # choose disk if not set with CLI
 if [ -z "${NOFORMAT}" ];then
