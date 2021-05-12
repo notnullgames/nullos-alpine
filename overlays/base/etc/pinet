@@ -8,6 +8,7 @@ if [ -f  "${MOUNT_DIR}/wpa_supplicant.conf" ];then
   mkdir -p /etc/wpa_supplicant/
   cp "${MOUNT_DIR}/wpa_supplicant.conf" /etc/wpa_supplicant/wpa_supplicant.conf
   /etc/init.d/wpa_supplicant start
+  ifup wlan0
 fi
 
 # start ssh if there is a ssh file on SD
