@@ -1,0 +1,11 @@
+#!/sbin/openrc-run
+
+# this will setup netoworking, like raspbian does
+# using ssh & wpa_supplicant.conf file
+# if those files are present, it will copy wpa_supplicant and start the services
+
+name="pinet"
+
+start() {
+  /etc/pinet /media/mmblk0
+}

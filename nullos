@@ -126,6 +126,11 @@ done
 green "Compressing overlay nullos.apkovl.tar.gz"
 tar czf "${WORK_DIR}/nullos/nullos.apkovl.tar.gz" --strip-components=1 -C "${WORK_DIR}/overlay" $(ls -A "${WORK_DIR}/overlay")
 
+# copy local (non-checked in) files to SD root
+if [ -d "${DIR}/local" ];then
+  sudo rsync -r "${DIR}/local/" "${WORK_DIR}/nullos"
+fi
+
 if [ -z "${OUT_DISK}" ];then
   yellow "Complete. Copy the files in ${WORK_DIR}/nullos/ to your disk."
 else
