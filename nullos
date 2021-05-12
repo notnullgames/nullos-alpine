@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
 PYTHON=$(which python3)
 SFDISK=$(which sfdisk)
