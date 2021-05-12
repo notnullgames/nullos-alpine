@@ -1,69 +1,141 @@
-#!/usr/bin/env python3
+#!/usr/bin/bash
 
-# pip3 install pyyaml requests
+PYTHON=$(which python3)
+SFDISK=$(which sfdisk)
 
-from yaml import SafeLoader, load as yaml
-from os import makedirs, path, listdir, system
-from shutil import make_archive, unpack_archive, copytree
-import requests
-import hashlib
+if [ -z "${PYTHON}" ];then
+  echo "python3 not found in your path."
+  exit 1
+fi
 
-# get information about current releases
-def get_releases(arch="armhf"):
-  r = requests.get(f'https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{arch}/latest-releases.yaml')
-  return yaml(r.text, Loader=SafeLoader)
+if [ -z "${SFDISK}" ];then
+  echo "sfdisk not found in your path."
+  exit 1
+fi
 
-# download a release
-def download_release(release, output=None):
-  if output == None:
-    output = f'out/{release["file"]}'
-  r = requests.get(f'https://dl-cdn.alpinelinux.org/alpine/latest-stable/releases/{release["arch"]}/{release["file"]}')
-  with open(output, "wb") as f:
-    f.write(r.content)
-  h = hashlib.sha256(r.content).hexdigest()
-  if h != release["sha256"]:
-    raise Exception("Hash did not match.")
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+WORK_DIR=$(realpath out)
+OUT_DISK=""
+PROGNAME=$0
 
-if __name__ == "__main__":
-  work_dir="./out"
-  makedirs(path.join(work_dir, "nullos"), exist_ok=True)
-  makedirs(path.join(work_dir, "overlay"), exist_ok=True)
-  makedirs(path.join(work_dir, "nullos", "firmware", "brcm"), exist_ok=True)
 
-  if not path.isdir(path.join(work_dir, "firmware-nonfree")):
-    print("Downlaoding pi firmware")
-    system(f'git clone --depth 1 https://github.com/RPi-Distro/firmware-nonfree.git "{path.join(work_dir, "firmware-nonfree")}"')
-  
-  # get alpine
-  if not path.isfile(path.join(work_dir, "alpine.tgz")):
-    for r in get_releases():
-      if r["flavor"] == "alpine-rpi":
-        print(f'Downloading Alpine: {r["title"]}.')
-        download_release(r, path.join(work_dir, "alpine.tgz"))
-        break
+function usage {
+  echo "$PROGNAME --work-dir <WORKDIR> --disk <DISK>"
+  echo "  --work-dir | -w    - The dir where files go, while working on stuff"
+  echo "  --disk | -d        - The disk that should be partioned/formatted"
+  echo "  --no-format | -n   - Just setup files, no linux partition tools"
+  echo "  --help | -h        - Show this help"
+  exit 1
+}
 
-  # create initial root
-  unpack_archive(path.join(work_dir, "alpine.tgz"), path.join(work_dir, "nullos"))
-  
-  # build overlay dir
-  for overlay in listdir('overlays'):
-    p = path.join('overlays', overlay)
-    if path.isdir(p):
-      print(f'Overlay: {overlay}')
-      for f in listdir(f'overlays/{overlay}'):
-        copytree(f'overlays/{overlay}/{f}', path.join(work_dir, f'overlay/{f}'), dirs_exist_ok=True, ignore_dangling_symlinks=True)
+POSITIONAL=()
+while [[ $# -gt 0 ]]
+do
+key="$1"
 
-  print("Building overlay file.")
-  # generate overlay file from merged overlays in single dir
-  make_archive(path.join(work_dir, "nullos", "nullos.apkovl"), 'gztar', path.join(work_dir, "overlay"), '.')
+case $key in
+    -w|--work-dir)
+      WORK_DIR=$(realpath "$2")
+      shift # past argument
+      shift # past value
+    ;;
+    -d|--disk)
+      OUT_DISK="$2"
+      shift # past argument
+      shift # past value
+    ;;
+    -n|--no-format)
+      OUT_DISK=""
+      NOFORMAT="1"
+      shift # past argument
+      shift # past value
+    ;;
+    -h|--help)
+      usage
+    ;;
+    *)
+      usage
+    ;;
+esac
+done
 
-  print("Adding pi firmware")
-  copytree(path.join(work_dir, "firmware-nonfree", "brcm"), path.join(work_dir, "nullos", "firmware", "brcm"), dirs_exist_ok=True, ignore_dangling_symlinks=True)
+function red {
+  printf "\033[0;31m$@\033[0m\n"
+}
 
-  print("Tweaking kernel config")
-  with open(path.join(work_dir, "nullos", "usercfg.txt"), "w") as config:
-    config.write("dtoverlay=vc4-kms-v3d\ngpu_mem=128\ndtparam=audio=on")
+function green {
+  printf "\033[0;32m$@\033[0m\n"
+}
 
-  # rebuild tarball
-  print(f'Building: {path.join(work_dir, "nullos")}.tar.gz')
-  make_archive(path.join(work_dir, "nullos"), 'gztar', path.join(work_dir, "nullos"), '.')
+function yellow {
+  printf "\033[0;33m$@\033[0m\n"
+}
+
+# choose disk if not set with CLI
+if [ -z "${NOFORMAT}" ];then
+  if [ -z "${OUT_DISK}" ];then
+    if (whiptail --yesno --title "NullOS" "Do you want to partition/format an SD card?" 0 0);then
+      options=()
+      while IFS= read -r -d $'\0' device; do
+          device=${device/\/dev\//}
+          size=$(lsblk -bno SIZE /dev/$device | head -1 | numfmt --to=iec --suffix=B)
+          options[${#options[@]}]="${device}"
+          options[${#options[@]}]="$(cat "/sys/class/block/${device}/device/model") - ${size}"
+      done < <(find "/dev/" -regex '/dev/sd[a-z]\|/dev/vd[a-z]\|/dev/hd[a-z]' -print0)
+      CHOICE=$(whiptail --title "NullOS" --menu "What device would you like to partition/format?" 0 0 0 "${options[@]}" 3>&2 2>&1 1>&3)
+      if [ ! -z "${CHOICE}" ];then
+        OUT_DISK="/dev/${CHOICE}"
+      else
+        echo "Canceled."
+        exit
+      fi
+    fi
+  else
+    if [ ! -f "${OUT_DISK}" ];then
+      red "${OUT_DISK} does not exist."
+      exit 1
+    fi
+  fi
+fi
+
+# setup dirs
+rm -rf "${WORK_DIR}/nullos" "${WORK_DIR}/overlay"
+sudo umount -f "${WORK_DIR}/disk"
+mkdir -p "${WORK_DIR}/nullos"
+mkdir -p "${WORK_DIR}/overlay"
+mkdir -p "${WORK_DIR}/disk"
+
+# get alpine disk
+if [ ! -f "${WORK_DIR}/alpine.tgz" ];then
+  green "Downloading Alpine"
+  URL=$("${PYTHON}" "${DIR}/get_release.py")
+  wget "${URL}" -O "${WORK_DIR}/alpine.tgz"
+else
+  yellow "Alpine found."
+fi
+
+green "Extracting Alpine"
+tar xzf "${WORK_DIR}/alpine.tgz" -C "${WORK_DIR}/nullos"
+
+green "Merging overlays"
+for overlay in "${DIR}"/overlays/*;do
+  rsync -abviuzP "${overlay}/" "${WORK_DIR}/overlay"
+  tar czf "${WORK_DIR}/nullos/nullos.apkovl.tar.gz" -C "${WORK_DIR}/overlay/" .
+done
+
+green "Compressing overlay nullos.apkovl.tar.gz"
+tar czf "${WORK_DIR}/nullos/nullos.apkovl.tar.gz" --strip-components=1 -C "${WORK_DIR}/overlay" $(ls -A "${WORK_DIR}/overlay")
+
+if [ -z "${OUT_DISK}" ];then
+  yellow "Complete. Copy the files in ${WORK_DIR}/nullos/ to your disk."
+else
+  green "Partitioning disk ${OUT_DISK}"
+  sudo umount -f /dev/sdg*
+  echo ',,c,*' | sudo "${SFDISK}" --wipe auto "${OUT_DISK}"
+  green "Formatting disk ${OUT_DISK}"
+  sudo mkfs.vfat "${OUT_DISK}1"
+  green "Copying files to ${OUT_DISK}"
+  sudo mount "${OUT_DISK}1" "${WORK_DIR}/disk"
+  sudo rsync -r "${WORK_DIR}/nullos/" "${WORK_DIR}/disk"
+  sudo umount -f "${WORK_DIR}/disk"
+fi
