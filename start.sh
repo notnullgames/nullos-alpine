@@ -11,8 +11,18 @@ setup_wifi() {
     apk add wireless-tools wpa_supplicant
     mkdir -p /etc/wpa_supplicant/
     cp "${SD}/wpa_supplicant.conf" /etc/wpa_supplicant/wpa_supplicant.conf
-    /etc/init.d/wpa_supplicant start
-    udhcpc -i wlan0
+    rc-service wpa_supplicant start
+    if [ ! -f  "/etc/network/interfaces" ];then
+      cat << EOF > /etc/network/interfaces
+auto lo
+iface lo inet loopback
+
+auto wlan0
+iface wlan0 inet dhcp
+  hostname nullbox
+EOF
+    fi
+    rc-service networking start
   fi
 }
 
@@ -29,7 +39,7 @@ setup_ssh() {
   # start ssh if there is a ssh file on SD, like how raspbian does
   if [ -f  "${SD}/ssh" ];then
     apk add openssh
-    /etc/init.d/sshd start
+    rc-service sshd start
   fi
 }
 
